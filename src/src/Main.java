@@ -50,7 +50,6 @@ public class Main extends JFrame implements Login.LoginCheck,RegisterUser {
 		Login login = new Login(this,this);
 		login.setVisible(true);
 	}
-
 	/**
 	 * Create the frame.
 	 */
@@ -107,7 +106,7 @@ public class Main extends JFrame implements Login.LoginCheck,RegisterUser {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				dialog = new CartDialog();
+				dialog = new CartDialog(user_id);
 				dialog.setVisible(true);
 			}
 		});

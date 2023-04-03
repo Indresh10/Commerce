@@ -52,7 +52,7 @@ public class ProductDialog extends JDialog implements ActionListener {
 		
 		JLabel image = new JLabel();
 		image.setBounds(26, 26, 200, 200);
-		image.setIcon(scaleImage(new ImageIcon("1.jpg"), 200,200));
+		image.setIcon(scaleImage(new ImageIcon("images//"+product.imagepath), 200,200));
 		contentPanel.add(image);
 		
 		JLabel lblName = new JLabel(product.name);
@@ -133,7 +133,7 @@ public class ProductDialog extends JDialog implements ActionListener {
           nw = (icon.getIconWidth() * nh) / icon.getIconHeight();
         }
 
-        return new ImageIcon(icon.getImage().getScaledInstance(nw, nh, Image.SCALE_DEFAULT));
+        return new ImageIcon(icon.getImage().getScaledInstance(nw, nh, Image.SCALE_SMOOTH));
     }
 	@Override
 	public void actionPerformed(ActionEvent e) {

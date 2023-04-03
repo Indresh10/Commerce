@@ -11,6 +11,9 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Random;
 
 import javax.swing.JButton;
@@ -22,6 +25,9 @@ import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.SoftBevelBorder;
+
+import src.CartProducts.RefreshListener;
+
 import java.awt.GridLayout;
 import javax.swing.JTextPane;
 
@@ -31,9 +37,9 @@ public class Summary extends JDialog implements ActionListener {
 	 * Launch the application.
 	 */
 	private final JPanel contentPanel = new JPanel();
-	private Float total = 0.0f;
 	private JLabel lblTotal;
-
+	private int user_id;
+	private float total = 0.0f;
 	/**
 	 * 
 	 */
@@ -42,7 +48,8 @@ public class Summary extends JDialog implements ActionListener {
 	/**
 	 * Create the frame.
 	 */
-	public Summary() {
+	public Summary(int user_id,String mode) {
+		this.user_id = user_id;
 		setTitle("Summary");
 //		setExtendedState(getExtendedState()|JFrame.MAXIMIZED_BOTH);
 		setBounds(GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds());
@@ -52,29 +59,7 @@ public class Summary extends JDialog implements ActionListener {
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
 		contentPanel.setLayout(new BorderLayout(0, 0));
-		{
-			{
-				JPanel panel = new JPanel();
-				panel.setLayout(new GridBagLayout());
-				GridBagConstraints c = new GridBagConstraints();
-				c.fill = GridBagConstraints.HORIZONTAL;
-				for(int i=1;i<=10;i++) {
-					String prod = "Product "+i;
-					Float price = 100.0f * i;
-					Random rand = new Random();
-					int qty = rand.nextInt(10-1 +1) + 1;
-					c.gridx = 0;
-					c.gridy = i-1;
-					c.weightx = 1;
-					c.ipady = 150;
-					c.insets = new Insets(2, 2, 2, 2);
-					panel.add(new CartProducts(prod, price, qty),c);
-					total += qty*price;
-				}
-				JScrollPane scrollPane = new JScrollPane(panel);
-				contentPanel.add(scrollPane, BorderLayout.CENTER);
-			}
-		}
+		
 		{
 			JPanel Price = new JPanel();
 			Price.setAlignmentX(Component.RIGHT_ALIGNMENT);
@@ -89,7 +74,7 @@ public class Summary extends JDialog implements ActionListener {
 				Price.add(lblNewLabel_1);
 			}
 			{
-				JLabel lblTotal = new JLabel(String.format("₹ %.2f ", total));
+				lblTotal = new JLabel(String.format("₹ %.2f ", total));
 				lblTotal.setBorder(new SoftBevelBorder(BevelBorder.LOWERED, null, null, null, null));
 				lblTotal.setOpaque(true);
 				lblTotal.setBackground(new Color(238, 232, 170));
@@ -98,19 +83,32 @@ public class Summary extends JDialog implements ActionListener {
 			}
 		}
 		{
+			addCart();
+		}
+		{
 			JPanel Details = new JPanel();
 			contentPanel.add(Details, BorderLayout.NORTH);
 			Details.setLayout(new GridLayout(1, 2, 5, 0));
 			{
-				JTextPane txtpnHello = new JTextPane();
-				txtpnHello.setOpaque(false);
-				txtpnHello.setText("Name\nAddress details");
-				txtpnHello.setEditable(false);
-				txtpnHello.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-				Details.add(txtpnHello);
+				SqlConnection connection = SqlConnection.getInstance();
+				try(Statement stmt = connection.getCon().createStatement()){
+					ResultSet set = stmt.executeQuery("select username,Address from users where id="+user_id);
+					set.next();
+					JTextPane txtpnHello = new JTextPane();
+					txtpnHello.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
+					txtpnHello.setOpaque(false);
+					txtpnHello.setText("Name: "+set.getString(1)+"\nAddress:"+set.getString(2));
+					txtpnHello.setEditable(false);
+					txtpnHello.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+					Details.add(txtpnHello);
+				}catch(SQLException ex) {
+					ex.printStackTrace();
+				}
+				
 			}
 			{
-				JLabel lblNewLabel = new JLabel("Payment Mode:Cash");
+				JLabel lblNewLabel = new JLabel("Payment Mode: "+mode);
+				lblNewLabel.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 				lblNewLabel.setFont(new Font("Segoe UI", Font.PLAIN, 18));
 				Details.add(lblNewLabel);
 			}
@@ -138,11 +136,38 @@ public class Summary extends JDialog implements ActionListener {
 		}
 		
 	}
-	public void setTotal(Float total) {
-		this.total = total;
-		this.lblTotal.setText(String.format("₹ %.2f ",total));
+	
+	private void addCart() {
+		total = 0.0f;
+		SqlConnection connection = SqlConnection.getInstance();
+		try(Statement stmt = connection.getCon().createStatement()){
+			ResultSet rs = stmt.executeQuery("select * from cartproduct where user_id="+user_id);
+			JPanel panel = new JPanel();
+			panel.setLayout(new GridBagLayout());
+			GridBagConstraints c = new GridBagConstraints();
+			c.fill = GridBagConstraints.HORIZONTAL;
+			int i=0;
+			while(rs.next()) {
+				Cart cart = new Cart(rs.getInt(1), rs.getInt("quantity"), rs.getFloat("total"),rs.getFloat("price"),rs.getString("name") , rs.getString("img")); 
+				c.gridx = 0;
+				c.gridy = i;
+				c.weightx = 1;
+				c.ipady = 150;
+				c.insets = new Insets(2, 2, 2, 2);
+				panel.add(new CartProducts(cart,null,false),c);
+				total += cart.total;
+				i++;
+			}
+			JScrollPane scrollPane = new JScrollPane(panel);
+			contentPanel.add(scrollPane, BorderLayout.CENTER);
+			lblTotal.setText(String.format(" ₹%.2f ", total));
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
 	}
 
-	
-	}
+}
 

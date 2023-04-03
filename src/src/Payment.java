@@ -24,9 +24,9 @@ public class Payment extends JDialog implements ActionListener {
 	 */
 	private static final long serialVersionUID = 1163940381177238351L;
 	private final JPanel contentPanel = new JPanel();
-
+	private JComboBox<String> combobox;
 	public interface OkListener{
-		void onOK();
+		void onOK(String mode);
 	}
 	/**
 	 * Create the dialog.
@@ -48,10 +48,10 @@ public class Payment extends JDialog implements ActionListener {
 			contentPanel.add(lblNewLabel);
 		}
 		{
-			JComboBox<String> comboBox = new JComboBox<>();
-			comboBox.setModel(new DefaultComboBoxModel<String>(new String[] {"Cash", "UPI", "Debit Card", "Credit Card", "NetBanking"}));
-			comboBox.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-			contentPanel.add(comboBox);
+			combobox = new JComboBox<>();
+			combobox.setModel(new DefaultComboBoxModel<String>(new String[] {"Cash", "UPI", "Debit Card", "Credit Card", "NetBanking"}));
+			combobox.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+			contentPanel.add(combobox);
 		}
 		{
 			JPanel buttonPane = new JPanel();
@@ -80,7 +80,7 @@ public class Payment extends JDialog implements ActionListener {
 		if(e.getActionCommand().equals("Cancel")) {
 			dispose();
 		}else {
-			oklist.onOK();
+			oklist.onOK(combobox.getSelectedItem().toString());
 			dispose();
 		}
 		

@@ -48,7 +48,7 @@ public class ProductPanel extends JPanel {
 		add(lblNewLabel_1, BorderLayout.PAGE_END);
 		
 		JLabel lblNewLabel_2 = new JLabel("");
-		lblNewLabel_2.setIcon(scaleImage(new ImageIcon("1.jpg"), 363,360));
+		lblNewLabel_2.setIcon(scaleImage(new ImageIcon("images//"+product.imagepath), 363,360));
 		add(lblNewLabel_2, BorderLayout.CENTER);
 		addMouseListener(new MouseListener() {
 			
@@ -102,6 +102,6 @@ public class ProductPanel extends JPanel {
           nw = (icon.getIconWidth() * nh) / icon.getIconHeight();
         }
 
-        return new ImageIcon(icon.getImage().getScaledInstance(nw, nh, Image.SCALE_DEFAULT));
+        return new ImageIcon(icon.getImage().getScaledInstance(nw, nh, Image.SCALE_SMOOTH));
     }
 }
